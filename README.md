@@ -60,7 +60,7 @@ Este é o backend do projeto Outsera, desenvolvido em ASP.NET Core.
 
 ## Exemplo de Uso
 
-### Endpoint: `GET /api/movies/awards-interval`
+### Endpoint: `GET /api/movies?projection=max-min-win-interval-for-producers`
 
 Retorna o produtor com maior e menor intervalo entre prêmios consecutivos.
 
