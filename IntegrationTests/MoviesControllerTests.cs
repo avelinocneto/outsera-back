@@ -36,20 +36,20 @@ namespace outsera_back.IntegrationTests
                 [
                     new ProducerInfoModel
                     {
-                        Producer = "Producer A",
+                        Producer = "Joel Silver",
                         Interval = 1,
-                        PreviousWin = 2000,
-                        FollowingWin = 2001
+                        PreviousWin = 1990,
+                        FollowingWin = 1991
                     }
                 ],
                 Max =
                 [
                     new ProducerInfoModel
                     {
-                        Producer = "Producer B",
-                        Interval = 10,
-                        PreviousWin = 1990,
-                        FollowingWin = 2000
+                        Producer = "Matthew Vaughn",
+                        Interval = 13,
+                        PreviousWin = 2002,
+                        FollowingWin = 2015
                     }
                 ]
             };
@@ -61,14 +61,91 @@ namespace outsera_back.IntegrationTests
         }
 
         /// <summary>
-        /// Testa o m�todo <see cref="MoviesController.GetPrizeIntervalInfo"/> esperando um BadRequest como resultado.
+        /// Testa o método <see cref="MoviesController.GetPrizeIntervalInfo"/> esperando OK como resultado.
         /// </summary>
+        /// <returns></returns>
         [Fact]
-        public void GetPrizeIntervalInfo_ReturnsBadRequest_OnServiceError()
+        public async Task GetTop3Studios_ReturnsOk()
         {
-            _mockMoviePrizeService.Setup(service => service.GetPrizeIntervalInfo()).Throws(new Exception());
-            var result = _controller.GetPrizeIntervalInfo();
-            Assert.IsType<BadRequestResult>(result);
+            var expectedData = new StudiosWinsResponseModel()
+            {
+                Studios = [
+                    new StudioWinCountModel{
+                        Name = "Studio A",
+                        WinCount = 10
+                    },
+                    new StudioWinCountModel{
+                        Name = "Studio B",
+                        WinCount = 5
+                    }
+                ]
+            };
+
+            _mockMoviePrizeService.Setup(service => service.GetTop3Studios()).Returns(expectedData);
+            var result = _controller.GetPrizeIntervalInfo(projection: "top3-studios");
+            var okResult = Assert.IsType<OkObjectResult>(result);
+
+            Assert.Equal(expectedData, okResult.Value);
+            Assert.NotNull(result);
+            Assert.Equal(2, ((StudiosWinsResponseModel)okResult.Value).Studios.Count());
+        }
+
+
+        /// <summary>
+        /// Testa o método <see cref="MoviesController.GetPrizeIntervalInfo"/> esperando OK como resultado.
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task GetYearsWithMultipleWinners_ReturnsOk()
+        {
+            var expectedData = new YearsWithMultipleWinnersResponseModel()
+            {
+                Years = [
+                    new YearWinnerCountModel{
+                        Year = 1986,
+                        WinnerCount = 2
+                    }
+                ]
+            };
+
+            _mockMoviePrizeService.Setup(service => service.GetYearsWithMultipleWinners()).Returns(expectedData);
+            var result = _controller.GetPrizeIntervalInfo(projection: "years-with-multiple-winners");
+            var okResult = Assert.IsType<OkObjectResult>(result);
+
+            Assert.Equal(expectedData, okResult.Value);
+            Assert.Single(((YearsWithMultipleWinnersResponseModel)okResult.Value).Years);
+            Assert.Equal(1986, ((YearsWithMultipleWinnersResponseModel)okResult.Value).Years.First().Year);
+        }
+
+
+        /// <summary>
+        /// Testa o método <see cref="MoviesController.GetPrizeIntervalInfo"/> esperando OK como resultado.
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task GetMoviesByYearAndWinner_ReturnsOk()
+        {
+            var result = _controller.GetPrizeIntervalInfo(year: 2018, winner: true);
+            var okResult = Assert.IsType<OkObjectResult>(result);
+
+            Assert.NotNull(result);
+            Assert.Equal(2018, ((IEnumerable<MovieModel>)okResult.Value).FirstOrDefault().Year);
+            Assert.True(((IEnumerable<MovieModel>)okResult.Value).FirstOrDefault().Winner);
+        }
+
+        /// <summary>
+        /// Testa o método <see cref="MoviesController.GetPrizeIntervalInfo"/> esperando OK como resultado.
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task GetMovies_ReturnsOk()
+        {
+            var result = _controller.GetPrizeIntervalInfo(page: 0, size: 2);
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            
+            Assert.NotNull(result);
+            Assert.Equal(2, ((MoviesResponseModel)okResult.Value).Content.Count());
+            Assert.Equal(2, ((MoviesResponseModel)okResult.Value).TotalElements);
         }
     }
 }

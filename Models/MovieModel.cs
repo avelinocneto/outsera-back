@@ -1,3 +1,4 @@
+
 namespace outsera_back.Models
 {
     /// <summary>
